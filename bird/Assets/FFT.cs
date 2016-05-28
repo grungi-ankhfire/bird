@@ -1,13 +1,5 @@
 using System;
-using System.Net;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Ink;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Shapes;
+
  
 namespace SpeedTest
 {
@@ -93,8 +85,8 @@ namespace SpeedTest
          * @param   inverse If true, do an inverse FFT
          */
         public void run(
-            double[] xRe,
-            double[] xIm,
+            float[] xRe,
+            float[] xIm,
             bool inverse = false )
         {
             uint numFlies = m_N >> 1; // Number of butterflies per sub-FFT
@@ -185,8 +177,8 @@ namespace SpeedTest
             while (x != null)
             {
                 uint target = x.revTgt;
-                xRe[target] = x.re;
-                xIm[target] = x.im;
+                xRe[target] = (float) x.re;
+                xIm[target] = (float) x.im;
                 x = x.next;
             }
         }

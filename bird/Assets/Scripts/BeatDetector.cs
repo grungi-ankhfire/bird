@@ -1,14 +1,18 @@
 using UnityEngine;
 using System.Collections;
+using SpeedTest;
 
 public class BeatDetector : MonoBehaviour {
 
     AudioSource aud;
-    float[] spectrum = new float[1024];
-    public float C = 1.3f; 
+    private float[] spectrum;
+    public float C = 1.3f;
+    public int sample_window = 1024;
     private bool[] beats;
 
     private int delay = 1;
+
+    private FFT2 fft;
 
     void Start() {
         aud = GetComponent<AudioSource>();
@@ -17,17 +21,19 @@ public class BeatDetector : MonoBehaviour {
         int num_windows = (int) Mathf.Ceil(num_samples / aud.clip.channels / 1024.0f);
         float[] energies = new float[num_windows];
         beats = new bool[num_windows];
-        float energy_left = 0f;
-        float energy_right = 0f;
-        float sample_left;
-        float sample_right;
         float energy_history;
         float current_sample;
+
+        fft = new FFT2();
+        fft.init(10);
 
         print(num_windows);
         print(num_samples);
 
-        aud.clip.GetData(samples, 0 );
+        float[] samples_fft = new float[sample_window];
+        float[] samples_fft_i = new float[sample_window];
+        spectrum = new float[sample_window];
+        aud.clip.GetData(samples, 0);
         int number_of_beats = 0;
 
         float min_variance = 10000000000f;
@@ -35,19 +41,31 @@ public class BeatDetector : MonoBehaviour {
 
         for (int w=0; w<num_windows; w++) {
 
-            int window_length = 1024;
+            int window_length = sample_window;
             if (w == num_windows-1) {
-                window_length = (num_samples/aud.clip.channels - (num_windows-1) * 1024);
+                window_length = (num_samples/aud.clip.channels - (num_windows-1) * sample_window);
             }
-
-            for (int i=0; i<window_length; i++){
-                for (int c = 0; c < aud.clip.channels; c++) {
-                    current_sample = samples[i*aud.clip.channels + c + w*1024*aud.clip.channels];
-                    energies[w] +=  current_sample * current_sample;
+            
+            for (int c = 0; c < aud.clip.channels; c++) {
+                for (int s = 0; s < sample_window; s++) {
+                    if (window_length < sample_window && s >= window_length) {
+                            samples_fft[s] = 0f;
+                    }
+                    else {
+                        samples_fft[s] = samples[w*sample_window + s*aud.clip.channels + c];
+                    }
+                    samples_fft_i[s] = 0f;
+                
                 }
 
+                fft.run(samples_fft, samples_fft_i, false);
 
+                for (int i=window_length / 4; i<window_length / 2; i++){
+                    current_sample = samples_fft[i];
+                    energies[w] +=  current_sample * current_sample;
+                }
             }
+
             //energies[w] = energy_left + energy_right;
             if (w > 42) {
                 energy_history = 0f;
@@ -67,7 +85,7 @@ public class BeatDetector : MonoBehaviour {
                 if (variance > max_variance) {
                     max_variance = variance;
                 }
-                C = (-0.0025714f*variance) +1.5142857f;
+                C = 1.4f; // (-0.0025714f*variance) +1.5142857f;
 
                 if (energy_history*C < energies[w]) {
                     beats[w] = true;
