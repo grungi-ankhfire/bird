@@ -60,9 +60,9 @@ public class BeatDetector : MonoBehaviour {
 
                 fft.run(samples_fft, samples_fft_i, false);
 
-                for (int i=window_length / 4; i<window_length / 2; i++){
+                for (int i=0; i<window_length/2; i++){
                     current_sample = samples_fft[i];
-                    energies[w] +=  current_sample * current_sample;
+                    energies[w] += (samples_fft[i] * samples_fft[i] + samples_fft_i[i] * samples_fft_i[i]);
                 }
             }
 
@@ -85,7 +85,7 @@ public class BeatDetector : MonoBehaviour {
                 if (variance > max_variance) {
                     max_variance = variance;
                 }
-                C = 1.4f; // (-0.0025714f*variance) +1.5142857f;
+                C = (-0.0025714f*variance) +1.5142857f;
 
                 if (energy_history*C < energies[w]) {
                     beats[w] = true;
