@@ -36,9 +36,15 @@ public class BeatDetector : MonoBehaviour {
 
 
     private float[] trajectory;
+    private float[] smoothTrajectory;
 
     // For road construction
     private float[] elevations;
+
+    [Range(0.0f, 1.0f)]
+    public float smoothing;
+
+    private Path path;
 
     void Start() {
 
@@ -65,6 +71,8 @@ public class BeatDetector : MonoBehaviour {
         beatNumber = 0;
         elevations = new float[numWindows];
         trajectory = new float[numWindows];
+        smoothTrajectory = new float[numWindows];
+
 
         Debug.Log("Number of samples : " + numSamples);
         Debug.Log("Number of windows : " + numWindows);
@@ -104,6 +112,11 @@ public class BeatDetector : MonoBehaviour {
             }
             if (w > 0) {
                 elevations[w] += elevations[w-1];
+            }
+            if (w == 0) {
+                smoothTrajectory[w] = elevations[w];
+            } else {
+                smoothTrajectory[w] = smoothing * elevations[w] + (1-smoothing) * smoothTrajectory[w-1];
             }
             minEnergy = Mathf.Min(energies[w], minEnergy);
             maxEnergy = Mathf.Max(energies[w], maxEnergy);
@@ -150,6 +163,8 @@ public class BeatDetector : MonoBehaviour {
         print("Minimum variance : " + minVariance);
         print("Maximum variance : " + maxVariance);
         rawSamples = new float[maxWindowSize*channels];
+
+        path = new Path(5.0f, 1.0f, 2.0f, Color.red, smoothTrajectory);
     }
 
     void FixedUpdate() {
@@ -162,10 +177,10 @@ public class BeatDetector : MonoBehaviour {
         for (int w = energyStart; w < energyEnd; w++) {
             if (w == segment) {
                 Debug.DrawLine(new Vector3(0.01f*(w-energyStart + 520), 0, 0), new Vector3(0.01f*(w-energyStart + 520), energies[w]/maxEnergy, 0), Color.white);
-                Debug.DrawLine(new Vector3(0, elevations[w], w-energyStart), new Vector3(0, elevations[w+1], (w+1)-energyStart), Color.yellow);
+                Debug.DrawLine(new Vector3(0, smoothTrajectory[w], w-energyStart), new Vector3(0, smoothTrajectory[w+1], (w+1)-energyStart), Color.yellow);
             } else {
                 Debug.DrawLine(new Vector3(0.01f*(w-energyStart + 520), 0, 0), new Vector3(0.01f*(w-energyStart + 520), energies[w]/maxEnergy, 0), Color.black);
-                Debug.DrawLine(new Vector3(0, elevations[w], w-energyStart), new Vector3(0, elevations[w+1], (w+1)-energyStart), Color.black);
+                Debug.DrawLine(new Vector3(0, smoothTrajectory[w], w-energyStart), new Vector3(0, smoothTrajectory[w+1], (w+1)-energyStart), Color.black);
             }
         }
 

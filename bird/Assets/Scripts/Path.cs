@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class Path
 {
-    private double[] _fluxThresholds;
+    private float[] _fluxThresholds;
 
     private int _segmentsH;
     private float _width;
@@ -14,7 +14,7 @@ public class Path
 
     private GameObject _instance = new GameObject();
 
-    public Path(float width, float height, float depth, Color color, double[] fluxThresholds)
+    public Path(float width, float height, float depth, Color color, float[] fluxThresholds)
     {
         _instance.name = "Path";
         _fluxThresholds = fluxThresholds;
@@ -24,7 +24,7 @@ public class Path
         _segmentsH = fluxThresholds.Length - 1;
 
         var meshRenderer = _instance.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
-        meshRenderer.material = (Material)Resources.Load("PathMaterial");
+        // meshRenderer.material = (Material)Resources.Load("PathMaterial");
 
         Build();
     }
