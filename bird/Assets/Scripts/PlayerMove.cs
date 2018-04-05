@@ -25,6 +25,9 @@ public class PlayerMove : MonoBehaviour {
     public float wingArea = 7200;
 
 
+    private float above = 0.0f;
+    private float new_above = 0.0f;
+    private float altitude = 10.0f;
 
 	// Use this for initialization
 	void Start () {
@@ -33,8 +36,7 @@ public class PlayerMove : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	   transform.Translate(transform.forward * 0.1f, Space.World);
-	}
+    }
 
     float LiftCoeff(float alpha) {
 
@@ -58,7 +60,7 @@ public class PlayerMove : MonoBehaviour {
     }
 
     void FixedUpdate() {
-        if (Input.GetKeyDown(KeyCode.Space) && !flapping) {
+        if ((Input.GetKeyDown(KeyCode.Space) || true )&& !flapping) {
             flapping = true;
             phase = 0;
         }
@@ -67,9 +69,23 @@ public class PlayerMove : MonoBehaviour {
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
 
+        altitude += v * Time.deltaTime * 50f;
+        altitude = Mathf.Min(20f, Mathf.Max(altitude, 0.5f));
+        //transform.Rotate(transform.forward, - h * Time.deltaTime * 50f, Space.World);
+        //transform.Rotate(transform.right, v * Time.deltaTime * 50f, Space.World);
 
-        transform.Rotate(transform.forward, - h * Time.deltaTime * 50f, Space.World);
-        transform.Rotate(transform.right, v * Time.deltaTime * 50f, Space.World);
+
+        transform.Translate(0, 0, 44100f/1024f * Time.deltaTime);
+
+        above = new_above;
+        RaycastHit hit;
+        if(Physics.Raycast(transform.position, -transform.up, out hit, 500f)){
+            new_above = hit.distance;
+        }
+
+        transform.Translate(0, altitude - hit.distance, 0);
+
+
 
         if (flapping) {
             phase += Time.deltaTime * freq * 2f * Mathf.PI;

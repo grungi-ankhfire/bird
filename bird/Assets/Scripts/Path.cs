@@ -23,8 +23,9 @@ public class Path
         _height = (fluxThresholds.Length - 1) * height;
         _segmentsH = fluxThresholds.Length - 1;
 
-        var meshRenderer = _instance.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
-        // meshRenderer.material = (Material)Resources.Load("PathMaterial");
+        MeshRenderer meshRenderer = _instance.AddComponent(typeof(MeshRenderer)) as MeshRenderer;
+        MeshCollider meshCollider;
+        meshRenderer.material = (Material)Resources.Load("PathMaterial");
 
         Build();
     }
@@ -97,5 +98,9 @@ public class Path
 
         var meshFilter = (MeshFilter)_instance.AddComponent(typeof(MeshFilter));
         meshFilter.mesh = mesh;
+        MeshCollider meshCollider = _instance.AddComponent(typeof(MeshCollider)) as MeshCollider;
+        _instance.transform.localScale = new Vector3(4.0f, 1f, 1f);
+        _instance.transform.position = new Vector3(9f, 0f, 0f);
+        //meshCollider.Mesh = mesh;
     }
 }
